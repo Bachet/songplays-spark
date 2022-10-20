@@ -15,6 +15,9 @@ os.environ["AWS_SECRET_ACCESS_KEY"] = config["AWS"]["SECRET_ACCESS_KEY"]
 
 
 def create_spark_session():
+    """
+    Initializes and configures a spark session with the hadoop AWS package
+    """
     spark = SparkSession \
         .builder \
         .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
@@ -23,6 +26,15 @@ def create_spark_session():
 
 
 def process_song_data(spark, input_data, output_data, schema):
+    """
+    Reads song data, transforms it and writes table partitions into the output S3 bucket
+
+    :param spark: spark session
+    :param input_data: S3 URI of the input S3 bucket
+    :param output_data: S3 URI of the output S3 bucket
+    :param schema: Schema to use when reading song data
+    :return: a dataframe of processed song data
+    """
     # get filepath to song data file
     song_data = input_data + "song-data/A/A/*/"
     
@@ -48,6 +60,15 @@ def process_song_data(spark, input_data, output_data, schema):
 
 
 def process_log_data(spark, input_data, output_data, schema, song_df):
+    """
+    Reads log event data, transforms it and writes table partitions into the output S3 bucket
+
+    :param spark: spark session
+    :param input_data: S3 URI of the input S3 bucket
+    :param output_data: S3 URI of the output S3 bucket
+    :param schema: Schema to use when reading log data
+    :param song_df: a dataframe of processed song data
+    """
     # get filepath to log data file
     log_data = input_data + "log-data/*/*/"
 
@@ -104,7 +125,10 @@ def process_log_data(spark, input_data, output_data, schema, song_df):
 
 
 def main():
+    # Init spark session
     spark = create_spark_session()
+
+    # Define function input variables
     input_data = "s3a://udacity-dend/"
     output_data = "s3a://uda-songplays-spark/"
 
@@ -141,8 +165,11 @@ def main():
         StructField("userAgent", StringType(), True),
         StructField("userId", StringType(), True)
     ])
-    
+
+    # process song data
     song_df = process_song_data(spark, input_data, output_data, song_data_schema)
+
+    # process log data
     process_log_data(spark, input_data, output_data, log_data_schema, song_df)
 
 
